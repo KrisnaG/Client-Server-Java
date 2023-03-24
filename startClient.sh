@@ -4,7 +4,7 @@
 cd "$(dirname "$0")"
 
 # Compile the Validation class
-javac -d ./temp src/validation/Validation.java
+javac -d ./temp src/utility/Validation.java
 
 # Compile the Client class
 javac -cp ./temp -d temp src/client/Client.java
