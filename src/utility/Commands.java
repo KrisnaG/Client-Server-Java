@@ -4,7 +4,7 @@
 package a2.src.utility;
 
 /**
- * 
+ * The Commands enum represents the possible commands that the client can send to the server.
  */
 public enum Commands {
     CONNECT("CONNECT"),
@@ -16,16 +16,16 @@ public enum Commands {
     private final String commandString;
 
     /**
-     * 
-     * @param commandString
+     * Constructs a Commands object with the specified command string.
+     * @param commandString the command string to be associated with this Commands object.
      */
     Commands(String commandString) {
         this.commandString = commandString;
     }
 
     /**
-     * 
-     * @return
+     * Returns the command string associated with this Commands object.
+     * @return the command string associated with this Commands object.
      */
     public String getCommandString() {
         return commandString;
@@ -34,7 +34,7 @@ public enum Commands {
     /**
      * Converts the command in String to enum.
      * @param commandString Command to convert.
-     * @return Command if valid, otherwise, null.
+     * @return the Commands enum associated with the specified command string if it is valid, otherwise, null.
      */
     public static Commands fromString(String commandString) {
         for (Commands command : Commands.values()) {

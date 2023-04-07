@@ -1,9 +1,8 @@
-/*
- * 
+/**
+ * @author Krisna gusti
  */
 package a2.src.client;
 
-import a2.src.utility.Commands;
 import a2.src.utility.Validation;
 
 import java.io.BufferedReader;
@@ -15,16 +14,16 @@ import java.net.UnknownHostException;
 import java.util.Scanner;
 
 /**
- * 
+ * The Client class represents a client that connects to a server.
  */
 public class Client {
     private String hostName;
     private int portNumber;
 
     /**
-     * 
-     * @param hostName
-     * @param portNumber
+     * Constructs a new Client with the given host name and port number.
+     * @param hostName the host name of the server to connect to.
+     * @param portNumber the port number to use for the connection.
      */
     public Client(String hostName, int portNumber) {
         this.hostName = hostName;
@@ -32,7 +31,7 @@ public class Client {
     }
 
     /**
-     * 
+     * Attempts to connect to the specified host and port, and executes user commands with the server.
      */
     public void connectToHost() {
         // Attempts to connect to host on given port
@@ -43,71 +42,30 @@ public class Client {
                 new BufferedReader(new InputStreamReader(socket.getInputStream()));
             Scanner scanner = new Scanner(System.in);
             ) {
-            // connect to server with username
-            handleConnect(clientIn, clientOut, scanner);
+            boolean disconnect = false;
 
-            // Execute user commands
-            while (true) {
-                handleRequest(clientIn, clientOut, scanner);
+            // For user handling
+            ClientUserHandling clientUserHandling = new ClientUserHandling(clientIn, clientOut, scanner);
+
+            // Connect to server with username
+            clientUserHandling.handleConnect();
+
+            // Execute user commands with Server
+            while (!disconnect) {
+                disconnect = clientUserHandling.handleRequest();
             }
         } catch (UnknownHostException error) {
             System.err.println(error.getMessage());
         } catch (IOException error) {
             System.err.println(error.getMessage());
-        } catch (Exception error) {
-            // TODO
+        } catch (ClientException error) {
+            System.err.println(error.getMessage());
         }
     }
 
     /**
-     * 
-     * @param clientIn
-     * @param clientOut
-     * @param scanner
-     * @throws Exception
-     */
-    public void handleConnect(BufferedReader clientIn, PrintWriter clientOut, Scanner scanner) throws Exception {
-        // Get user input
-        System.out.print(ClientConstants.CLIENT_USER_CONNECT_MESSAGE);
-        String userInput = scanner.nextLine();
-        
-        // Remove any newline characters
-        userInput.replaceAll("\n", "");
-
-        // Connect to server with username
-        clientOut.printf("%s %s%s", ClientConstants.CLIENT_CONNECT, userInput, ClientConstants.MESSAGE_TERMINATION);
-        
-        // TODO
-        String[] response = clientIn.readLine().split(" ", 2);
-        System.out.println(response);
-
-        if (response.length != 2) {
-            // TODO make new exception class and add message
-            throw new Exception("");
-        }
-        // Server response valid
-        if (Commands.fromString(response[0]) == null && response[1] != ClientConstants.CLIENT_OK) {
-            // TODO make new exception class
-            throw new Exception("Invalid server message");
-        }
-    }
-
-    /**
-     * 
-     * @param clientIn
-     * @param clientOut
-     * @param scanner
-     * @throws Exception
-     */
-    public void handleRequest(BufferedReader clientIn, PrintWriter clientOut, Scanner scanner) throws Exception {
-        // print user commands
-        System.out.print(ClientConstants.CLIENT_USER_COMMAND_MESSAGE);
-        String userInput = scanner.nextLine();
-    }
-
-    /**
-     * Entry point.
-     * @param args
+     * Entry point for the client application.
+     * @param args an array of input arguments. Should contain the host name and port number.
      */
     public static void main(String[] args) {
         // Validate inputs
@@ -116,7 +74,7 @@ public class Client {
             System.exit(Validation.EXIT_FAILURE_VALIDATION);
         }
        
-        // Inputs should be validated
+        // Create client - Inputs should be  already validated
         Client client = new Client(args[0], Integer.parseInt(args[1]));
 
         // Connect to host

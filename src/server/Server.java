@@ -29,9 +29,10 @@ public class Server {
     }
 
     /**
-     * 
-     * @param bytes
-     * @return
+     * Checks to see if enough memory is available to a given amount of bytes.
+     * There are some reserved bytes to ensure normal operations.
+     * @param bytes Number of bytes to be added to memory.
+     * @return True if there is enough memory available, otherwise, false.
      */
     public static boolean isMemoryEnoughAvailable(long bytes) {
         return Runtime.getRuntime().freeMemory() + bytes + ServerConstants.SERVER_RESERVED_BYTES
@@ -72,7 +73,7 @@ public class Server {
 
     /**
      * Entry point.
-     * @param args
+     * @param args Input arguments.
      */
     public static void main(String[] args) {
         // Validate input
