@@ -1,15 +1,17 @@
 /**
  * @author Krisna Gusti
  */
-package a2.src.client;
+package a2.src.main.client;
 
-import a2.src.utility.Commands;
-import a2.src.utility.Validation;
+import a2.src.main.utility.Commands;
+import a2.src.main.utility.Validation;
 
 import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * A class that handles user input and communication with the server.
@@ -18,6 +20,8 @@ public class ClientUserHandling {
     private BufferedReader clientIn;
     private PrintWriter clientOut;
     private Scanner scanner;
+    private boolean disconnectFromServer;
+    private static Logger logger = Logger.getLogger(ClientUserHandling.class.getName());
     
     /**
      * Constructor.
@@ -29,6 +33,7 @@ public class ClientUserHandling {
         this.clientIn = clientIn;
         this.clientOut = clientOut;
         this.scanner = scanner;
+        disconnectFromServer = false;
     }
 
     
@@ -51,20 +56,21 @@ public class ClientUserHandling {
         this.clientOut.printf("%s %s%s", ClientConstants.CLIENT_CONNECT, userInput, ClientConstants.MESSAGE_TERMINATION);
         
         // Wait for server response
-        String[] response = this.clientIn.readLine().split(" ", 2);
-
+        String response = this.clientIn.readLine();
+        String[] responseSplit = response.split(" ", 2);
+        
         // Check if server response has two parts
-        if (!Validation.numberOfInputsValid(response, 2)) {
+        if (!Validation.numberOfInputsValid(responseSplit, 2)) {
             throw new ClientException("Invalid server response");
         }
 
         // Error response received from server
-        if (response[1].equals(ClientConstants.CLIENT_ERROR)) {
+        if (responseSplit[1].equals(ClientConstants.CLIENT_ERROR)) {
             throw new ClientException("Server connection error");
         }
-
+        
         // Check server response is valid
-        if (Commands.fromString(response[0]) == Commands.CONNECT && response[1].equals(ClientConstants.CLIENT_OK)) {
+        if (Commands.fromString(responseSplit[0]) != Commands.CONNECT && !responseSplit[1].equals(ClientConstants.CLIENT_OK)) {
             throw new ClientException("Invalid server response");
         }
 
@@ -79,34 +85,31 @@ public class ClientUserHandling {
      * @throws ClientException if there is an error with the server response.
      * @return true if the user wishes to disconnect, otherwise, false.
      */
-    public boolean handleRequest() throws IOException, ClientException {
-        boolean disconnectFromServer = false;
-        
+    public boolean handleRequest() throws IOException, ClientException {        
         // Get user command
         System.out.print(ClientConstants.CLIENT_USER_COMMAND_MESSAGE);
         String userInput = this.getUserInput();
 
         // Executes user command
-        switch (Commands.valueOf(userInput)) {
-            case GET:
+        switch (userInput) {
+            case "1":
                 this.handleGet();
                 break;
-            case DELETE:
-                this.handleDelete();
-                break;
-            case DISCONNECT:
-                this.handleDisconnect();
-                disconnectFromServer = true;
-                break;
-            case PUT:
+            case "2":
                 this.handlePut();
                 break;
+            case "3":
+                this.handleDelete();
+                break;
+            case "4":
+                this.handleDisconnect();
+                break;
             default:
-                System.out.println("Unknown user command");
+                logger.log(Level.WARNING, "Unknown user command");
                 break;
         }
         
-        return disconnectFromServer;
+        return this.disconnectFromServer;
     }
 
     /**
@@ -121,8 +124,9 @@ public class ClientUserHandling {
         System.out.println(ClientConstants.CLIENT_USER_GET_MESSAGE);
         String key = this.getUserInput();
 
+        // Check for valid key
         if (key == null || key.equals("")) {
-            throw new ClientException("Invalid key");
+            throw new ClientException(ClientConstants.INVALID_KEY_ERROR);
         }
 
         // Send GET request with key to server
@@ -138,11 +142,17 @@ public class ClientUserHandling {
      * request with the key to the server, waiting for the server response, and 
      * printing the response to the console.
      * @throws IOException if there is an error with the input/output stream.
+     * @throws ClientException if there is an error with the client response.
      */
-    public void handleDelete() throws IOException {
+    public void handleDelete() throws IOException, ClientException {
         // Get key from user
         System.out.println(ClientConstants.CLIENT_USER_DELETE_MESSAGE);
         String key = this.getUserInput();
+
+        // Check for valid key
+        if (key == null || key.equals("")) {
+            throw new ClientException(ClientConstants.INVALID_KEY_ERROR);
+        }
 
         // Send DELETE request with key to server
         this.sendMessageToServer(Commands.DELETE.toString(), key);
@@ -163,13 +173,43 @@ public class ClientUserHandling {
         // Wait for server response
         String response = this.clientIn.readLine();
         System.out.println(response);
+
+        this.disconnectFromServer = true;
     }
 
     /**
-     * 
+     * Handles the PUT command by getting key and value from the user, sending a
+     * PUT request with the key and value to the server, and waiting for the server
+     * response.
+     * @throws IOException if there is an error with the input/output stream.
+     * @throws ClientException if there is an error with the client response.
      */
-    public void handlePut() {
+    public void handlePut() throws IOException, ClientException {
+        // Get key from user
+        System.out.println(ClientConstants.CLIENT_USER_PUT_KEY_MESSAGE);
+        String key = this.getUserInput();
 
+        // Check for valid key
+        if (key == null || key.equals("")) {
+            throw new ClientException(ClientConstants.INVALID_KEY_ERROR);
+        }
+
+        // Get key from user
+        System.out.println(ClientConstants.CLIENT_USER_PUT_VALUE_MESSAGE);
+        String value = this.getUserInput();
+
+        // Check for valid value
+        if (value == null || value.equals("")) {
+            throw new ClientException(ClientConstants.INVALID_VALUE_ERROR);
+        }
+
+        // Send PUT request with key to server
+        this.sendMessageToServer(Commands.PUT.toString(), key, 
+            String.valueOf(ClientConstants.MESSAGE_TERMINATION), value);
+
+        // Wait for server response
+        String response = this.clientIn.readLine();
+        System.out.println(response);
     }
 
     /**

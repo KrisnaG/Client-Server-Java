@@ -1,7 +1,7 @@
 /**
  * @author Krisna Gusti
  */
-package a2.src.utility;
+package a2.src.main.utility;
 
 /**
  * The Commands enum represents the possible commands that the client can send to the server.
@@ -11,7 +11,8 @@ public enum Commands {
     PUT("PUT"),
     GET("GET"),
     DELETE("DELETE"),
-    DISCONNECT("DISCONNECT");
+    DISCONNECT("DISCONNECT"),
+    UNKNOWN("UNKNOWN");
 
     private final String commandString;
 
@@ -42,6 +43,6 @@ public enum Commands {
                 return command;
             }
         }
-        return null;
+        return UNKNOWN;
     }
 }

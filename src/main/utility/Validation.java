@@ -1,13 +1,20 @@
 /**
  * @author Krisna Gusti
  */
-package a2.src.utility;
+package a2.src.main.utility;
 
 /**
  * Validation class to validate inputs.
  */
 public class Validation {
     public static final int EXIT_FAILURE_VALIDATION = 1;
+
+    /**
+     *  This class is not meant to be instantiated
+     */
+    private Validation() {
+        throw new IllegalStateException("Cannot instantiate ClientConstants class");
+    }
 
     /**
      * Checks the input string array for valid length and valid number.
@@ -28,11 +35,7 @@ public class Validation {
      * @return True if valid, otherwise, false.
      */
     public static boolean numberOfInputsValid(final String[] arguments, final int numberOfInputs) {
-        if (arguments.length != numberOfInputs) {
-            System.err.println("Invalid number of inputs");
-            return false;
-        }
-        return true;
+        return arguments.length == numberOfInputs;
     }
 
     /**
@@ -45,7 +48,6 @@ public class Validation {
             Integer.parseInt(input);
             return true;
         } catch (NumberFormatException error) {
-            System.err.println("Invalid input - Not a valid number");
             return false;
         }
     }

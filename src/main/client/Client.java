@@ -1,17 +1,20 @@
 /**
  * @author Krisna gusti
  */
-package a2.src.client;
+package a2.src.main.client;
 
-import a2.src.utility.Validation;
+import a2.src.main.utility.Validation;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * The Client class represents a client that connects to a server.
@@ -19,6 +22,7 @@ import java.util.Scanner;
 public class Client {
     private String hostName;
     private int portNumber;
+    private static Logger logger = Logger.getLogger(Client.class.getName());
 
     /**
      * Constructs a new Client with the given host name and port number.
@@ -43,6 +47,9 @@ public class Client {
             Scanner scanner = new Scanner(System.in);
             ) {
             boolean disconnect = false;
+            
+            // Set timeout to prevent client hanging if server never responds
+            socket.setSoTimeout(ClientConstants.MAX_TIMEOUT_MILLISECONDS);
 
             // For user handling
             ClientUserHandling clientUserHandling = new ClientUserHandling(clientIn, clientOut, scanner);
@@ -54,12 +61,10 @@ public class Client {
             while (!disconnect) {
                 disconnect = clientUserHandling.handleRequest();
             }
-        } catch (UnknownHostException error) {
-            System.err.println(error.getMessage());
-        } catch (IOException error) {
-            System.err.println(error.getMessage());
-        } catch (ClientException error) {
-            System.err.println(error.getMessage());
+        } catch (UnknownHostException | SocketTimeoutException | ClientException error) {
+            logger.log(Level.WARNING, error.getMessage());
+        }  catch (IOException error) {
+            logger.log(Level.WARNING, error.getMessage());;
         }
     }
 
@@ -70,7 +75,7 @@ public class Client {
     public static void main(String[] args) {
         // Validate inputs
         if (!Validation.validateInputs(args, ClientConstants.NUMBER_OF_CLIENT_START_INPUTS)) {
-            System.out.println(ClientConstants.CLIENT_USAGE);
+            logger.log(Level.WARNING, ClientConstants.CLIENT_USAGE);
             System.exit(Validation.EXIT_FAILURE_VALIDATION);
         }
        

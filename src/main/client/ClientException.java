@@ -1,7 +1,7 @@
 /**
  * @author Krisna Gusti
  */
-package a2.src.client;
+package a2.src.main.client;
 
 /*
  * This class represents an exception that occurs when there is an error with the client.

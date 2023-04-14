@@ -1,14 +1,22 @@
 /**
  * @author Krisna Gusti
  */
-package a2.src.server;
+package a2.src.main.server;
 
 /**
  * This class contains constants used in the server application.
  */
 public class ServerConstants {
+    /**
+     *  This class is not meant to be instantiated
+     */
+    private ServerConstants() {
+        throw new IllegalStateException("Cannot instantiate ClientConstants class");
+    }
+
     // Server error codes
     public static final int EXIT_FAILURE_CONNECTION = 1;
+    public static final boolean SERVER_DISCONNECT_ERROR = false;
 
     // Server threads
     public static final int MAX_THREAD_COUNT = 10;
@@ -23,5 +31,5 @@ public class ServerConstants {
     public static final char MESSAGE_TERMINATION = '\n';
     public static final String SERVER_USAGE = "Usage: ./startServer <port number>";
     public static final String SERVER_EXECUTED_COMMAND_OK = "OK";
-    public static final String SERVER_ERROR = "ERROR";
+    public static final String SERVER_ERROR = "ERROR";    
 }

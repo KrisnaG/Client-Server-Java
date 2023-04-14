@@ -1,24 +1,27 @@
 /**
  * @author Krisna Gusti
  */
-package a2.src.server;
+package a2.src.main.server;
 
-import a2.src.utility.Validation;
+import a2.src.main.utility.Validation;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
- * Serve class that provides various services to the clients. It listens for incoming client 
+ * Server class that provides various services to the clients. It listens for incoming client 
  * connections and dispatches requests to the appropriate handler. The server uses a thread 
  * pool to manage concurrent requests.
  */
 public class Server {
     private int portNumber;
-    private final static ServerClientSessionManager serverClientIdManager = new ServerClientSessionManager();
+    private static final ServerClientSessionManager serverClientIdManager = new ServerClientSessionManager();
+    private static Logger logger = Logger.getLogger(Server.class.getName());
     
     /**
      * Constructor.
@@ -34,7 +37,7 @@ public class Server {
      * @param bytes Number of bytes to be added to memory.
      * @return True if there is enough memory available, otherwise, false.
      */
-    public static boolean isMemoryEnoughAvailable(long bytes) {
+    public static synchronized boolean isMemoryEnoughAvailable(long bytes) {
         return Runtime.getRuntime().freeMemory() + bytes + ServerConstants.SERVER_RESERVED_BYTES
                 < Runtime.getRuntime().maxMemory();
     }
@@ -48,22 +51,20 @@ public class Server {
  
         // Attempts to open port
         try (ServerSocket serverSocket = new ServerSocket(this.portNumber)) {
-            System.out.printf("Port %d opened. Server Ready\n", this.portNumber);
+            logger.log(Level.INFO, "Port {0} opened. Server Ready", this.portNumber);
             while (true) {
                 try {
                     // Listens for incoming client connections
                     Socket clientSocket = serverSocket.accept();
-                      // Handle client in a separate thread
+                    // Handle client in a separate thread
                     ServerClientHandler clientHandler = new ServerClientHandler(clientSocket, serverClientIdManager);
-                    executor.execute(clientHandler);
+                    executor.submit(clientHandler);
                 } catch (IOException error) {
-                    System.err.println("Error accepting client connection");
-                    System.err.println(error.getMessage());
-                    System.exit(ServerConstants.EXIT_FAILURE_CONNECTION);
+                    logger.log(Level.WARNING, error.getMessage());
                 }
             }
         } catch (IOException error) {
-            System.err.println(error.getMessage());
+            logger.log(Level.WARNING, error.getMessage());
             System.exit(ServerConstants.EXIT_FAILURE_CONNECTION);
         } finally {
             // Shutdown thread manager
@@ -72,13 +73,13 @@ public class Server {
     }
 
     /**
-     * Entry point.
-     * @param args Input arguments.
+     * Entry point for the server application.
+     * @param args an array of input arguments. Should contain the port number.
      */
     public static void main(String[] args) {
         // Validate input
         if (!Validation.validateInputs(args, ServerConstants.NUMBER_OF_SERVER_START_INPUTS)) {
-            System.out.println(ServerConstants.SERVER_USAGE);
+            logger.log(Level.WARNING, ServerConstants.SERVER_USAGE);
             System.exit(Validation.EXIT_FAILURE_VALIDATION);
         }
         
