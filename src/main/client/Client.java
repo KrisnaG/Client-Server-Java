@@ -63,8 +63,10 @@ public class Client {
             }
         } catch (UnknownHostException | SocketTimeoutException | ClientException error) {
             logger.log(Level.WARNING, error.getMessage());
+            logger.log(Level.INFO, "Disconnecting");
         }  catch (IOException error) {
-            logger.log(Level.WARNING, error.getMessage());;
+            logger.log(Level.WARNING, error.getMessage());
+            logger.log(Level.INFO, "Disconnecting");
         }
     }
 

@@ -51,17 +51,14 @@ public class Server {
  
         // Attempts to open port
         try (ServerSocket serverSocket = new ServerSocket(this.portNumber)) {
-            logger.log(Level.INFO, "Port {0} opened. Server Ready", this.portNumber);
+            logger.log(Level.INFO, "PORT: {0} OPENED - SERVER READY", this.portNumber);
             while (true) {
-                try {
-                    // Listens for incoming client connections
-                    Socket clientSocket = serverSocket.accept();
-                    // Handle client in a separate thread
-                    ServerClientHandler clientHandler = new ServerClientHandler(clientSocket, serverClientIdManager);
-                    executor.submit(clientHandler);
-                } catch (IOException error) {
-                    logger.log(Level.WARNING, error.getMessage());
-                }
+                // Listens for incoming client connections
+                Socket clientSocket = serverSocket.accept();
+                
+                // Handle client in a separate thread
+                ServerClientHandler clientHandler = new ServerClientHandler(clientSocket, serverClientIdManager);
+                executor.submit(clientHandler);
             }
         } catch (IOException error) {
             logger.log(Level.WARNING, error.getMessage());

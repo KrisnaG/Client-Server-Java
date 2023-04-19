@@ -10,8 +10,6 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.io.IOException;
 import java.util.Scanner;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * A class that handles user input and communication with the server.
@@ -21,7 +19,6 @@ public class ClientUserHandling {
     private PrintWriter clientOut;
     private Scanner scanner;
     private boolean disconnectFromServer;
-    private static Logger logger = Logger.getLogger(ClientUserHandling.class.getName());
     
     /**
      * Constructor.
@@ -41,9 +38,6 @@ public class ClientUserHandling {
      * Handles the connection of the client to the server. It prompts the user to input 
      * their username, connects to the server with the username, waits for a response 
      * from the server, and then validates the response.
-     * @param clientIn the input stream of the client's socket.
-     * @param clientOut the output stream of the client's socket.
-     * @param scanner the scanner to read input from the console.
      * @throws IOException if there is an error with the input/output stream.
      * @throws ClientException if there is an error with the server response.
      */
@@ -53,12 +47,12 @@ public class ClientUserHandling {
         String userInput = this.getUserInput();
 
         // Connect to server with username
-        this.clientOut.printf("%s %s%s", ClientConstants.CLIENT_CONNECT, userInput, ClientConstants.MESSAGE_TERMINATION);
+        this.sendMessageToServer(ClientConstants.CLIENT_CONNECT, " ", userInput);
         
         // Wait for server response
         String response = this.clientIn.readLine();
-        String[] responseSplit = response.split(" ", 2);
-        
+        String[] responseSplit = response.split(" ");
+
         // Check if server response has two parts
         if (!Validation.numberOfInputsValid(responseSplit, 2)) {
             throw new ClientException("Invalid server response");
@@ -70,7 +64,7 @@ public class ClientUserHandling {
         }
         
         // Check server response is valid
-        if (Commands.fromString(responseSplit[0]) != Commands.CONNECT && !responseSplit[1].equals(ClientConstants.CLIENT_OK)) {
+        if (Commands.fromString(responseSplit[0]) != Commands.CONNECT || !responseSplit[1].equals(ClientConstants.CLIENT_OK)) {
             throw new ClientException("Invalid server response");
         }
 
@@ -105,7 +99,7 @@ public class ClientUserHandling {
                 this.handleDisconnect();
                 break;
             default:
-                logger.log(Level.WARNING, "Unknown user command");
+                System.out.println("Unknown user command! Please try again.");
                 break;
         }
         
@@ -130,7 +124,7 @@ public class ClientUserHandling {
         }
 
         // Send GET request with key to server
-        this.sendMessageToServer(Commands.GET.toString(), key);
+        this.sendMessageToServer(Commands.GET.toString(), " ", key);
 
         // Wait for server response
         String response = this.clientIn.readLine();
@@ -155,7 +149,7 @@ public class ClientUserHandling {
         }
 
         // Send DELETE request with key to server
-        this.sendMessageToServer(Commands.DELETE.toString(), key);
+        this.sendMessageToServer(Commands.DELETE.toString(), " ", key);
 
         // Wait for server response
         String response = this.clientIn.readLine();
@@ -167,7 +161,7 @@ public class ClientUserHandling {
      * @throws IOException if there is an error with the input/output stream.
      */
     public void handleDisconnect() throws IOException {
-        // Send DELETE request to server
+        // Send DISCONNECT request to server
         this.sendMessageToServer(Commands.DISCONNECT.toString());
 
         // Wait for server response
@@ -204,7 +198,7 @@ public class ClientUserHandling {
         }
 
         // Send PUT request with key to server
-        this.sendMessageToServer(Commands.PUT.toString(), key, 
+        this.sendMessageToServer(Commands.PUT.toString(), " ", key, 
             String.valueOf(ClientConstants.MESSAGE_TERMINATION), value);
 
         // Wait for server response
@@ -217,7 +211,7 @@ public class ClientUserHandling {
      * @param messages The message(s) to be sent to the server.
      */
     public void sendMessageToServer(String ... messages) {
-        String message = String.join(" ", messages);
+        String message = String.join("", messages);
         this.clientOut.printf("%s%s", message, ClientConstants.MESSAGE_TERMINATION);
     }
 

@@ -29,7 +29,7 @@ public class ClientConstants {
     // User messages
     public static final String CLIENT_USAGE = "Usage: ./startClient <hostname> <port number>";
     public static final String CLIENT_USER_CONNECT_MESSAGE = "Enter username: ";
-    public static final String CLIENT_USER_COMMAND_MESSAGE = "Available options (Use the associated number):\n"
+    public static final String CLIENT_USER_COMMAND_MESSAGE = "\nAvailable options (Use the associated number):\n"
                                                            + "1. GET\n"
                                                            + "2. PUT\n"
                                                            + "3. DELETE\n"

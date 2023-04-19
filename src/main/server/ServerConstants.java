@@ -22,7 +22,7 @@ public class ServerConstants {
     public static final int MAX_THREAD_COUNT = 10;
 
     // Server reserved memory in bytes
-    public static final long SERVER_RESERVED_BYTES = 8192;
+    public static final long SERVER_RESERVED_BYTES = 1_048_576;
 
     // Server inputs
     public static final int NUMBER_OF_SERVER_START_INPUTS = 1;
