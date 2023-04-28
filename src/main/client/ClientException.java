@@ -11,7 +11,7 @@ public class ClientException extends Exception {
      * Constructor.
      * @param message the error message associated with this exception.
      */
-    public ClientException(String message) {
+    public ClientException(final String message) {
         super(message);
     }
 }

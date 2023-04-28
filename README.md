@@ -24,6 +24,8 @@ This is a Java client-server application for sending messages over a network. It
 
 >Replace <port_number> with the port number you want to use for the server.
 
+NOTE: Any arguments inputted after the port number will be ignored.
+
 ### ***Starting the Client***
 
 1. Navigate to the root directory of the project (a2).
@@ -34,6 +36,8 @@ This is a Java client-server application for sending messages over a network. It
 ```
 
 >Replace <host_name> with the name of the host where the server is running, and <port_number> with the port number used by the server.
+
+NOTE: Any arguments inputted after the port number will be ignored.
 
 ### ***Cleaning the compiled files***
 
@@ -117,7 +121,7 @@ Once the server is started, the server only accepts the following commands:
 ## Constraints
 
 ### Timeout
-If an error occurs from the server or a message is not received by the client within 10 seconds, the client connection will timeout. This means the client would disconnect from the server.
+If an error occurs from the server or a message is not received by the client within 30 seconds, the client connection will timeout. This means the client would disconnect from the server.
 
 ### Number of Clients
 There is a maximum of 10 clients that can be connected to the server at any one time. Clients connecting when the server reaches maximum are placed into a queue until a client disconnects.

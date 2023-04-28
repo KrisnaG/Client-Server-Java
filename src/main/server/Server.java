@@ -37,7 +37,7 @@ public class Server {
      * @param bytes Number of bytes to be added to memory.
      * @return True if there is enough memory available, otherwise, false.
      */
-    public static synchronized boolean isMemoryEnoughAvailable(long bytes) {
+    public static synchronized boolean isMemoryEnoughAvailable(final long bytes) {
         return Runtime.getRuntime().freeMemory() + bytes + ServerConstants.SERVER_RESERVED_BYTES
                 < Runtime.getRuntime().maxMemory();
     }
@@ -74,6 +74,7 @@ public class Server {
      * @param args an array of input arguments. Should contain the port number.
      */
     public static void main(String[] args) {
+
         // Validate input
         if (!Validation.validateInputs(args, ServerConstants.NUMBER_OF_SERVER_START_INPUTS)) {
             logger.log(Level.WARNING, ServerConstants.SERVER_USAGE);

@@ -20,8 +20,8 @@ import java.util.logging.Logger;
  * The Client class represents a client that connects to a server.
  */
 public class Client {
-    private String hostName;
-    private int portNumber;
+    private final String hostName;
+    private final int portNumber;
     private static Logger logger = Logger.getLogger(Client.class.getName());
 
     /**
@@ -29,7 +29,7 @@ public class Client {
      * @param hostName the host name of the server to connect to.
      * @param portNumber the port number to use for the connection.
      */
-    public Client(String hostName, int portNumber) {
+    public Client(final String hostName, final int portNumber) {
         this.hostName = hostName;
         this.portNumber = portNumber;
     }

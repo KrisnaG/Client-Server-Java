@@ -15,9 +15,9 @@ import java.util.Scanner;
  * A class that handles user input and communication with the server.
  */
 public class ClientUserHandling {
-    private BufferedReader clientIn;
-    private PrintWriter clientOut;
-    private Scanner scanner;
+    private final BufferedReader clientIn;
+    private final PrintWriter clientOut;
+    private final Scanner scanner;
     private boolean disconnectFromServer;
     
     /**
@@ -26,7 +26,7 @@ public class ClientUserHandling {
      * @param clientOut the output stream of the client's socket.
      * @param scanner the scanner to read input from the console.
      */
-    public ClientUserHandling(BufferedReader clientIn, PrintWriter clientOut, Scanner scanner) {
+    public ClientUserHandling(final BufferedReader clientIn, final PrintWriter clientOut, final Scanner scanner) {
         this.clientIn = clientIn;
         this.clientOut = clientOut;
         this.scanner = scanner;
@@ -51,21 +51,28 @@ public class ClientUserHandling {
         
         // Wait for server response
         String response = this.clientIn.readLine();
-        String[] responseSplit = response.split(" ");
+
+        // Ensure response is not null
+        if (response == null) {
+            throw new ClientException(ClientConstants.INVALID_NULL_RESPONSE_ERROR);
+        }
+
+        String[] responseToken = response.split(" ", 2);
 
         // Check if server response has two parts
-        if (!Validation.numberOfInputsValid(responseSplit, 2)) {
-            throw new ClientException("Invalid server response");
+        if (!Validation.numberOfInputsValid(responseToken, 2)) {
+            throw new ClientException(ClientConstants.INVALID_CONNECT_RESPONSE_ERROR);
         }
 
         // Error response received from server
-        if (responseSplit[1].equals(ClientConstants.CLIENT_ERROR)) {
-            throw new ClientException("Server connection error");
+        if (responseToken[1].equals(ClientConstants.CLIENT_ERROR)) {
+            throw new ClientException(ClientConstants.INVALID_CONNECT_ERROR);
         }
         
         // Check server response is valid
-        if (Commands.fromString(responseSplit[0]) != Commands.CONNECT || !responseSplit[1].equals(ClientConstants.CLIENT_OK)) {
-            throw new ClientException("Invalid server response");
+        if (!responseToken[0].equals(Commands.CONNECT.toString()) || 
+            !responseToken[1].equals(ClientConstants.CLIENT_OK)) {
+                throw new ClientException(ClientConstants.INVALID_CONNECT_RESPONSE_ERROR);
         }
 
         // Display server response
@@ -120,7 +127,8 @@ public class ClientUserHandling {
 
         // Check for valid key
         if (key == null || key.equals("")) {
-            throw new ClientException(ClientConstants.INVALID_KEY_ERROR);
+            System.out.println(ClientConstants.INVALID_KEY_ERROR);
+            return;
         }
 
         // Send GET request with key to server
@@ -128,6 +136,12 @@ public class ClientUserHandling {
 
         // Wait for server response
         String response = this.clientIn.readLine();
+
+        // Ensure response is not null
+        if (response == null) {
+            throw new ClientException(ClientConstants.INVALID_NULL_RESPONSE_ERROR);
+        }        
+
         System.out.println(response);
     }
 
@@ -145,7 +159,8 @@ public class ClientUserHandling {
 
         // Check for valid key
         if (key == null || key.equals("")) {
-            throw new ClientException(ClientConstants.INVALID_KEY_ERROR);
+            System.out.println(ClientConstants.INVALID_KEY_ERROR);
+            return;
         }
 
         // Send DELETE request with key to server
@@ -153,21 +168,54 @@ public class ClientUserHandling {
 
         // Wait for server response
         String response = this.clientIn.readLine();
+
+        // Ensure response is not null
+        if (response == null) {
+            throw new ClientException(ClientConstants.INVALID_NULL_RESPONSE_ERROR);
+        }
+
+        String[] responseToken = response.split(" ", 2);
+
+        // Test Server response is valid
+        if (!responseToken[0].equals(Commands.DELETE.toString()) || 
+            (!responseToken[1].equals(ClientConstants.CLIENT_OK) && 
+            !responseToken[1].equals(ClientConstants.CLIENT_ERROR))) {
+                throw new ClientException(ClientConstants.INVALID_DELETE_RESPONSE_ERROR);
+        }
+
+        // Print server response
         System.out.println(response);
     }
 
     /**
      * Sends a DISCONNECT command to the server and waits for its response.
      * @throws IOException if there is an error with the input/output stream.
+     * @throws ClientException if there is an error with the client response.
      */
-    public void handleDisconnect() throws IOException {
+    public void handleDisconnect() throws IOException, ClientException {
         // Send DISCONNECT request to server
         this.sendMessageToServer(Commands.DISCONNECT.toString());
 
         // Wait for server response
         String response = this.clientIn.readLine();
+
+        // Ensure response is not null
+        if (response == null) {
+            throw new ClientException(ClientConstants.INVALID_NULL_RESPONSE_ERROR);
+        }
+
+        String[] responseToken = response.split(" ");
+
+        // Test Server response is valid
+        if (!responseToken[0].equals(Commands.DISCONNECT.toString()) || 
+            !responseToken[1].equals(ClientConstants.CLIENT_OK)) {
+                throw new ClientException(ClientConstants.INVALID_DISCONNECT_RESPONSE_ERROR);
+        }
+
+        // Print server response
         System.out.println(response);
 
+        // Disconnect from server gracefully
         this.disconnectFromServer = true;
     }
 
@@ -185,7 +233,8 @@ public class ClientUserHandling {
 
         // Check for valid key
         if (key == null || key.equals("")) {
-            throw new ClientException(ClientConstants.INVALID_KEY_ERROR);
+            System.out.println(ClientConstants.INVALID_KEY_ERROR);
+            return;
         }
 
         // Get key from user
@@ -194,7 +243,8 @@ public class ClientUserHandling {
 
         // Check for valid value
         if (value == null || value.equals("")) {
-            throw new ClientException(ClientConstants.INVALID_VALUE_ERROR);
+            System.out.println(ClientConstants.INVALID_VALUE_ERROR);
+            return;
         }
 
         // Send PUT request with key to server
@@ -203,6 +253,22 @@ public class ClientUserHandling {
 
         // Wait for server response
         String response = this.clientIn.readLine();
+
+        // Ensure response is not null
+        if (response == null) {
+            throw new ClientException(ClientConstants.INVALID_NULL_RESPONSE_ERROR);
+        }
+
+        String[] responseToken = response.split(" ", 2);
+
+        // Test Server response is valid
+        if (!responseToken[0].equals(Commands.PUT.toString()) || 
+            (!responseToken[1].equals(ClientConstants.CLIENT_OK) && 
+            !responseToken[1].equals(ClientConstants.CLIENT_ERROR))) {
+                throw new ClientException(ClientConstants.INVALID_PUT_RESPONSE_ERROR);
+        }
+        
+        // Print server response
         System.out.println(response);
     }
 
@@ -210,7 +276,7 @@ public class ClientUserHandling {
      * Sends a message to the server.
      * @param messages The message(s) to be sent to the server.
      */
-    public void sendMessageToServer(String ... messages) {
+    public void sendMessageToServer(final String ... messages) {
         String message = String.join("", messages);
         this.clientOut.printf("%s%s", message, ClientConstants.MESSAGE_TERMINATION);
     }

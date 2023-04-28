@@ -66,9 +66,10 @@ public class ServerClientSessionManager {
      * Deletes the value associated with a key for a client in the session.
      * @param clientId The ID of the client.
      * @param key The key for the value to delete.
-     * @return True if key specified is mapped, otherwise, false.
+     * @return True if key was successfully removed, otherwise, false.
      */
     public synchronized boolean deleteClientData(String clientID, String key) {
-        return clientSession.get(clientID).remove(key) != null;
+        clientSession.get(clientID).remove(key);
+        return clientSession.get(clientID).get(key) == null;
     }
 }

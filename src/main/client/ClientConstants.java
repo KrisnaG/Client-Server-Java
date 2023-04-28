@@ -18,7 +18,7 @@ public class ClientConstants {
     public static final int NUMBER_OF_CLIENT_START_INPUTS = 2;
 
     // Client timeout
-    public static final int MAX_TIMEOUT_MILLISECONDS = 10_000;
+    public static final int MAX_TIMEOUT_MILLISECONDS = 30_000;
 
     // Client/Server message
     public static final char MESSAGE_TERMINATION = '\n';
@@ -40,4 +40,12 @@ public class ClientConstants {
     public static final String CLIENT_USER_PUT_VALUE_MESSAGE = "Please enter the data: ";
     public static final String INVALID_KEY_ERROR = "Invalid key";
     public static final String INVALID_VALUE_ERROR = "Invalid value";
+
+    // Server response error
+    public static final String INVALID_NULL_RESPONSE_ERROR = "Server Response NULL";
+    public static final String INVALID_CONNECT_RESPONSE_ERROR = "Invalid CONNECT Server Response";
+    public static final String INVALID_CONNECT_ERROR = "Server Connection Error";
+    public static final String INVALID_PUT_RESPONSE_ERROR = "Invalid PUT Server Response";
+    public static final String INVALID_DELETE_RESPONSE_ERROR = "Invalid DELETE Server Response";
+    public static final String INVALID_DISCONNECT_RESPONSE_ERROR = "Invalid DISCONNECT Server Response";
 }

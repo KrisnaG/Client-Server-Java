@@ -43,7 +43,7 @@ public class Validation {
      * @param input String to check.
      * @return True if valid, otherwise, false.
      */
-    public static boolean isInputAValidNumber(String input) {
+    public static boolean isInputAValidNumber(final String input) {
         try {
             Integer.parseInt(input);
             return true;

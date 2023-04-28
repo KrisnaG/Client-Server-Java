@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,10 +26,10 @@ import a2.src.main.utility.Commands;
  * - DISCONNECT: Disconnects the client from the server.
  */
 public class ServerClientHandler implements Runnable {
-    private Socket socket;
+    private final Socket socket;
     private final ServerClientSessionManager serverClientSessionManager;
-    private boolean clientConnected;
     private String clientID;
+    private boolean clientConnected;
     private boolean disconnect;
     private static Logger logger = Logger.getLogger(ServerClientHandler.class.getName());
 
@@ -58,21 +57,23 @@ public class ServerClientHandler implements Runnable {
             BufferedReader serverIn = 
                 new BufferedReader(new InputStreamReader(this.socket.getInputStream()));
             ) {
-            String input;
 
             // Read incoming client messages
             while(!this.disconnect) {
-                input = serverIn.readLine();
-                String[] tokens = input.split(" ", 2);
-                Commands command = tokens.length > 0 ? Commands.fromString(tokens[0]) : Commands.UNKNOWN;
-                String data = tokens.length > 1 ? tokens[1] : null;
+                String[] inputTokens = serverIn.readLine().split(" ", 2);
+                Commands command = inputTokens.length > 0 ? Commands.fromString(inputTokens[0]) : Commands.UNKNOWN;
+                String data = inputTokens.length > 1 ? inputTokens[1] : null;
                 
+                // All commands besides DISCONNECT must have associated data
+                if ((!command.equals(Commands.DISCONNECT) && data == null) 
+                    || (command.equals(Commands.DISCONNECT) && data != null)) {
+                    this.handleDisconnect(serverOut, ServerConstants.SERVER_DISCONNECT_ERROR);
+                    return;
+                }
+
                 // Execute client commands 
                 switch (command) {
                     case CONNECT:
-                        if (tokens.length < 1) {
-                            this.handleDisconnect(serverOut, ServerConstants.SERVER_DISCONNECT_ERROR);
-                        }
                         this.handleConnect(serverOut, data);
                         break;
                     case DELETE:
@@ -93,7 +94,7 @@ public class ServerClientHandler implements Runnable {
                         this.handleDisconnect(serverOut, ServerConstants.SERVER_DISCONNECT_ERROR);
                         break;
                 }
-            }   
+            }
         } catch (IOException error) {
             logger.log(Level.WARNING, error.getMessage());
         } finally {
@@ -125,12 +126,14 @@ public class ServerClientHandler implements Runnable {
      * @param data The client ID associated with the connection.
      * @throws IOException If there is an I/O error while sending or receiving data from the client.
      */
-    public void handleConnect(PrintWriter serverOut, String data) throws IOException {
+    public void handleConnect(final PrintWriter serverOut, final String data) throws IOException {
         // Check if client is already connected.
         if (!this.serverClientSessionManager.addClient(data)) {
-            this.sendMessageToClient(serverOut, Commands.CONNECT.toString(), " ", ServerConstants.SERVER_ERROR);
+            this.sendMessageToClient(
+                serverOut, Commands.CONNECT.toString(), " ", ServerConstants.SERVER_ERROR);
             logger.log(Level.INFO, "CLIENT: {0} is already connected.", data);
             this.handleDisconnect(serverOut, ServerConstants.SERVER_DISCONNECT_ERROR);
+            return;
         }
         this.clientID = data;
         this.clientConnected = true;
@@ -147,7 +150,7 @@ public class ServerClientHandler implements Runnable {
      * @param key The key used to identify the data to be deleted.
      * @throws IOException If there is an I/O error while sending or receiving data from the client.
      */
-    public void handleDelete(PrintWriter serverOut, String key) throws IOException {
+    public void handleDelete(final PrintWriter serverOut, final String key) throws IOException {
         // Client must connect first
         if (!clientConnected) {
             this.handleDisconnect(serverOut, ServerConstants.SERVER_DISCONNECT_ERROR);
@@ -157,9 +160,7 @@ public class ServerClientHandler implements Runnable {
         
         // Delete data and ensure its deleted
         if (this.serverClientSessionManager.deleteClientData(this.clientID, key)) {
-            if (this.serverClientSessionManager.getClientData(this.clientID, key) == null) {
-                deleteResponse = ServerConstants.SERVER_EXECUTED_COMMAND_OK;
-            }
+            deleteResponse = ServerConstants.SERVER_EXECUTED_COMMAND_OK;
         }
 
         this.sendMessageToClient(
@@ -172,7 +173,8 @@ public class ServerClientHandler implements Runnable {
      * @param clientInitiatedDisconnect Indicates whether the client initiated the disconnection or not.
      * @throws IOException if there is an I/O error while closing the socket connection
      */
-    public void handleDisconnect(PrintWriter serverOut, boolean clientInitiatedDisconnect) throws IOException {
+    public void handleDisconnect(final PrintWriter serverOut, final boolean clientInitiatedDisconnect) 
+            throws IOException {
         // Remove client data
         this.serverClientSessionManager.disconnectClient(clientID);
         this.clientConnected = false;
@@ -195,7 +197,7 @@ public class ServerClientHandler implements Runnable {
     * @param key The key used to identify the data to be retrieved.
     * @throws IOException If an I/O error occurs while communicating with the client or server.
     */
-    public void handleGet(PrintWriter serverOut, String key) throws IOException {
+    public void handleGet(final PrintWriter serverOut, final String key) throws IOException {
         // Client must connect first
         if (!clientConnected) {
             this.handleDisconnect(serverOut, ServerConstants.SERVER_DISCONNECT_ERROR);
@@ -219,7 +221,7 @@ public class ServerClientHandler implements Runnable {
      * @param value The value to be added or updated.
      * @throws IOException if there is an error sending messages to the client or closing the socket.
      */
-    public void handlePut(PrintWriter serverOut, String key, String value) throws IOException {
+    public void handlePut(final PrintWriter serverOut, final String key, final String value) throws IOException {
         // Client must connect first
         if (!clientConnected) {
             this.handleDisconnect(serverOut, ServerConstants.SERVER_DISCONNECT_ERROR);
@@ -245,7 +247,7 @@ public class ServerClientHandler implements Runnable {
      * @param serverOut The PrintWriter stream to send the message to.
      * @param messages The message(s) to be sent to the client.
      */
-    public void sendMessageToClient(PrintWriter serverOut, String ... messages) {
+    public void sendMessageToClient(final PrintWriter serverOut, final String ... messages) {
         String message = String.join("", messages);
         serverOut.printf("%s%s", message, ServerConstants.MESSAGE_TERMINATION);
     }
